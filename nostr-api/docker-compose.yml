@@ -1,0 +1,23 @@
+version: "3.2"
+services:
+  backend:
+    hostname: nostr-api
+    container_name: nostr-api
+    build: .
+    environment:
+      - GIN_MODE=debug
+    ports:
+      - 8080:8080
+    volumes:
+      - ./:/app
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
+
+volumes:
+  cache:
+    driver: local
+
