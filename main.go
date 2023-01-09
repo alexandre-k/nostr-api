@@ -1,9 +1,15 @@
 package main
 
-import "fmt"
-import "log"
-import "github.com/nbd-wtf/go-nostr"
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+	"net/http"
+	"encoding/json"
+	"log"
+	"database/sql"
+	"github.com/nbd-wtf/go-nostr"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/gin-gonic/gin")
+
 
 
 func fetchNotes(c *gin.Context) {
@@ -23,8 +29,55 @@ func fetchNotes(c *gin.Context) {
 	}
 }
 
+func filterNotesContent(c *gin.Context) {
+	db, err := sql.Open("sqlite3", "nostr.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer db.Close()
+
+	keyword := c.Query("keyword")
+	if keyword == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Need a keyword as parameter to filter text data.",
+		})
+		return
+	}
+	stm, err := db.Prepare(fmt.Sprintf("SELECT content FROM event WHERE content like '%%%s%%'", keyword))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	rows, err := stm.Query()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer rows.Close()
+
+	i := 0
+	var result []map[string]string
+	for rows.Next() {
+		i++
+		var event string
+		err = rows.Scan(&event)
+		if err != nil {
+			log.Fatal(err)
+		}
+		var nostrEvent nostr.Event
+		json.Unmarshal([]byte(event), &nostrEvent)
+		result = append(result, map[string]string{"author": nostrEvent.PubKey, "content": nostrEvent.Content})
+		log.Printf("%d ==> %s", i, nostrEvent.Content)
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"data": result,
+	})
+}
+
 func main() {
 	router := gin.Default()
 	router.GET("/notes", fetchNotes)
+	router.GET("/notes/filter", filterNotesContent)
 	router.Run("0.0.0.0:8080")
 }
