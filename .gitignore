@@ -1,4 +1,5 @@
 **/node_modules/**
+tmp/**
 
 # Binaries for programs and plugins
 *.exe
