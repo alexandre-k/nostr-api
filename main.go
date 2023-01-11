@@ -30,6 +30,7 @@ func fetchNotes(c *gin.Context) {
 }
 
 func filterNotesContent(c *gin.Context) {
+	c.Header("Content-Type", "application/json")
 	db, err := sql.Open("sqlite3", "nostr.db")
 	if err != nil {
 		log.Fatal(err)
@@ -77,7 +78,11 @@ func filterNotesContent(c *gin.Context) {
 
 func main() {
 	router := gin.Default()
-	router.GET("/notes", fetchNotes)
-	router.GET("/notes/filter", filterNotesContent)
+	router.GET("/")
+	api := router.Group("/api/v1")
+	{
+		api.GET("/notes", fetchNotes)
+		api.GET("/notes/filter", filterNotesContent)
+	}
 	router.Run("0.0.0.0:8080")
 }
