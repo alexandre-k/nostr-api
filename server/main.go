@@ -37,7 +37,10 @@ func filterNotesContent(c *gin.Context) {
 	nostrDb := os.Getenv("NOSTR_DB_PATH")
 	db, err := sql.Open("sqlite3", nostrDb)
 	if err != nil {
-		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Unable to find db.",
+		})
+		return
 	}
 
 	defer db.Close()
@@ -85,11 +88,12 @@ func main() {
 	router.GET("/")
 
 	// Serve frontend static files
-	router.Use(static.Serve("/", static.LocalFile("./client/build", true)))
+	router.Use(static.Serve("/app", static.LocalFile("/app/client/build", true)))
+	router.Use(static.Serve("/static", static.LocalFile("/app/client/build/static", true)))
 	api := router.Group("/api/v1")
 	{
 		api.GET("/notes", fetchNotes)
 		api.GET("/notes/filter", filterNotesContent)
 	}
-	router.Run("0.0.0.0:8080")
+	router.Run("0.0.0.0:8000")
 }

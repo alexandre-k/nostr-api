@@ -1,24 +1,18 @@
 version: "3.2"
 services:
-  backend:
-    hostname: nostr-api
-    image: golang:latest
+  nostr-search:
+    hostname: nostr-search
+    build:
+      context: .
+      dockerfile: ./Dockerfile
     environment:
       - GIN_MODE=debug
-      - NOSTR_DB_PATH="./nostr.db"
+      - NOSTR_DB_PATH=$NOSTR_DB_PATH
     ports:
-      - 8080:8080
+      - 8000:8000
     volumes:
-      - ./client/build:/app/client/build
       - ./server:/app
-    command: >
-      sh -c "curl -fLo install.sh https://raw.githubusercontent.com/cosmtrek/air/master/install.sh &&
-      chmod +x install.sh &&
-      sh install.sh &&
-      cp ./bin/air /bin/air &&
-      cd /app &&
-      go mod download &&
-      air"
+      - ./client/build:/app/client/build
     networks:
       - proxy
 

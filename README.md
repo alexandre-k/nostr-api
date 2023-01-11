@@ -1,4 +1,4 @@
-# Nostr API
+# Nostr Search
 
 ## Motivation
 
