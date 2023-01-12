@@ -8,11 +8,13 @@ services:
     environment:
       - GIN_MODE=debug
       - NOSTR_DB_PATH=$NOSTR_DB_PATH
+        # - NOSTR_DB_PATH=./db/nostr.db
     ports:
       - 8000:8000
     volumes:
       - ./server:/app
       - ./client/build:/app/client/build
+        # - /home/alex/nostr-rs-relay/data/:/app/db
     networks:
       - proxy
 
