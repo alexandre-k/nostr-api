@@ -32,8 +32,7 @@ function Search({ setNotes, keyword, setKeyword, setLoading, setError }: SearchP
       setLoading(true);
       setError("");
       await axios.get("/api/v1/notes/filter?keyword=" + keyword).then((res) => {
-        console.log("notes > ", res.data);
-        setNotes(res.data);
+          setNotes(res.data);
           setLoading(false);
       })
         .catch(err => {

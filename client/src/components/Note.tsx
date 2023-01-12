@@ -5,6 +5,9 @@ import CardContent from "@mui/material/CardContent";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Unstable_Grid2"; // Grid version 2
+import ReactHtmlParser from 'react-html-parser';
+import "./Note.css"
+
 
 type NoteT = {
   author: string;
@@ -26,7 +29,7 @@ const Note = ({ note, index, keyword }: NoteProps) => (
           {note.author}
         </Typography>
         <Typography variant="body2">
-          <div>{note.content}</div>
+          <div>{ReactHtmlParser(note.content.replaceAll(keyword, `<code class="highlight">${keyword}</code>`))}</div>
         </Typography>
       </CardContent>
     </Card>
