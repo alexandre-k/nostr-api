@@ -22,15 +22,25 @@ interface SearchProps {
   setNotes: (notes: Note[]) => void;
     keyword: string;
     setKeyword: (word: string) => void;
+    setLoading: (loading: boolean) => void;
+    setError: (error: string) => void;
 }
 
-function Search({ setNotes, keyword, setKeyword }: SearchProps) {
-  const searchKeyword = (keyword: string) => {
+function Search({ setNotes, keyword, setKeyword, setLoading, setError }: SearchProps) {
+  const searchKeyword = async (keyword: string) => {
     if (!!keyword) {
-      axios.get("/api/v1/notes/filter?keyword=" + keyword).then((res) => {
-        console.log("notes > ", res.data.data);
-        setNotes(res.data.data);
-      });
+      setLoading(true);
+      setError("");
+      await axios.get("/api/v1/notes/filter?keyword=" + keyword).then((res) => {
+        console.log("notes > ", res.data);
+        setNotes(res.data);
+          setLoading(false);
+      })
+        .catch(err => {
+            console.log(err);
+            setError(`${err.code}: ${err.message}`);
+            setLoading(false)
+        });
     }
   };
 
@@ -46,7 +56,7 @@ function Search({ setNotes, keyword, setKeyword }: SearchProps) {
       <Stack direction="row" spacing={2}>
         <TextField
           id="outlined-name"
-          label="Nostr Search"
+          label="Search on Nostr"
           value={keyword}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
             setKeyword(event.target.value)

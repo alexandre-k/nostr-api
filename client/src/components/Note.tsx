@@ -14,7 +14,7 @@ type NoteT = {
 interface NoteProps {
   note: NoteT;
   index: number;
-    keyword: string;
+  keyword: string;
 }
 
 const Note = ({ note, index, keyword }: NoteProps) => (

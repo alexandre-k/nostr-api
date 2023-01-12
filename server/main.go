@@ -35,6 +35,10 @@ func fetchNotes(c *gin.Context) {
 func filterNotesContent(c *gin.Context) {
 	c.Header("Content-Type", "application/json")
 	nostrDb := os.Getenv("NOSTR_DB_PATH")
+	// If environment variable not set, use local db
+	if nostrDb == "" {
+		nostrDb = "./nostr.db"
+	}
 	db, err := sql.Open("sqlite3", nostrDb)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -55,6 +59,10 @@ func filterNotesContent(c *gin.Context) {
 	stm, err := db.Prepare(fmt.Sprintf("SELECT content FROM event WHERE content like '%%%s%%'", keyword))
 	if err != nil {
 		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": err,
+		})
+		return
 	}
 
 	rows, err := stm.Query()
@@ -65,11 +73,12 @@ func filterNotesContent(c *gin.Context) {
 	defer rows.Close()
 
 	i := 0
-	var result []map[string]string
+	var result = make([]map[string]string, 0)
 	for rows.Next() {
 		i++
 		var event string
 		err = rows.Scan(&event)
+		fmt.Println("rows er ", err)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -78,9 +87,7 @@ func filterNotesContent(c *gin.Context) {
 		result = append(result, map[string]string{"author": nostrEvent.PubKey, "content": nostrEvent.Content})
 		log.Printf("%d ==> %s", i, nostrEvent.Content)
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"data": result,
-	})
+	c.JSON(http.StatusOK, result)
 }
 
 func main() {

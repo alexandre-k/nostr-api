@@ -4,7 +4,9 @@ import Paper from "@mui/material/Paper";
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
 import CardContent from "@mui/material/CardContent";
+import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
 import Divider from "@mui/material/Divider";
 import TextField from "@mui/material/TextField";
 import IconButton from "@mui/material/IconButton";
@@ -33,18 +35,39 @@ type Note = {
 const App = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [keyword, setKeyword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   return (
     <Box display="flex" flexDirection="column">
       <Grid container spacing={2}>
+        {!!error && <Grid xs={12} md={12}>
+            <Alert severity="error">{error}</Alert>
+        </Grid>}
         <Grid xs={12} md={12}>
-          <Search setNotes={setNotes} keyword={keyword} setKeyword={setKeyword} />
-          <Divider />
+          <Search
+              setNotes={setNotes}
+              keyword={keyword}
+              setKeyword={setKeyword}
+              setLoading={setLoading}
+              setError={setError}
+          />
         </Grid>
 
-        {notes.map((note: Note, idx: number) => (
-          <Grid xs={12} md={4}>
-            <Note note={note} index={idx} keyword={keyword} />
+        <Grid xs={12} md={12}>
+              <Divider />
+      </Grid>
+
+        {!!loading && <Grid xs={12} md={12} display="flex" justifyContent="center" alignItems="center">
+            <CircularProgress />
+        </Grid>}
+        {notes.length > 0 && notes.map((note: Note, idx: number) => (
+          <Grid xs={12} md={4} key={idx}>
+            <Note
+                note={note}
+                index={idx}
+                keyword={keyword}
+            />
           </Grid>
         ))}
       </Grid>
