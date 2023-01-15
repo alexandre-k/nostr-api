@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { styled } from "@mui/material/styles";
 import Paper from "@mui/material/Paper";
 import Card from "@mui/material/Card";
@@ -20,28 +20,45 @@ type Note = {
 
 interface SearchProps {
   setNotes: (notes: Note[]) => void;
-    keyword: string;
-    setKeyword: (word: string) => void;
+    keywords: string[];
+    currentPage: number;
+    setCurrentPage: (page: number) => void;
+    setKeywords: (words: string[]) => void;
+    setTotalNotes: (total: number) => void;
     setLoading: (loading: boolean) => void;
     setError: (error: string) => void;
 }
 
-function Search({ setNotes, keyword, setKeyword, setLoading, setError }: SearchProps) {
-  const searchKeyword = async (keyword: string) => {
-    if (!!keyword) {
+function Search({ setNotes, keywords, currentPage, setKeywords, setCurrentPage, setTotalNotes, setLoading, setError }: SearchProps) {
+  const searchKeywords = async (kw: string[], currentPage: number) => {
+    if (!!kw) {
       setLoading(true);
       setError("");
-      await axios.get("/api/v1/notes/filter?keyword=" + keyword).then((res) => {
-          setNotes(res.data);
+      const keywordsQuery = kw.map((k, idx) => {
+          if (idx == 0) {
+              return "keywords=" + k
+          } else {
+              return "&keywords=" + k
+          }
+      })
+      await axios.get("/api/v1/notes/filter?" + keywordsQuery.join("") + "&page=" + Number(currentPage - 1)).then((res) => {
+          setNotes(res.data.notes);
+          setTotalNotes(res.data.total);
           setLoading(false);
       })
         .catch(err => {
             console.log(err);
+            setNotes([]);
+            setTotalNotes(0);
             setError(`${err.code}: ${err.message}`);
             setLoading(false)
         });
     }
   };
+
+  useEffect(() => {
+      searchKeywords(keywords, currentPage);
+  }, [currentPage])
 
   return (
     <Box
@@ -56,20 +73,24 @@ function Search({ setNotes, keyword, setKeyword, setLoading, setError }: SearchP
         <TextField
           id="outlined-name"
           label="Search on Nostr"
-          value={keyword}
-          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-            setKeyword(event.target.value)
-          }
+          value={keywords.join(" ")}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => setKeywords(event.target.value.split(" "))}
           onKeyPress={(event) => {
-            if (event.key === "Enter") searchKeyword(keyword);
+            if (event.key === "Enter") {
+                searchKeywords(keywords, currentPage);
+                setCurrentPage(currentPage);
+            }
           }}
         />
         <IconButton
           color="primary"
           aria-label="upload picture"
           component="label"
-          disabled={!keyword}
-          onClick={() => searchKeyword(keyword)}
+          disabled={!keywords}
+          onClick={() => {
+            searchKeywords(keywords, currentPage);
+            setCurrentPage(currentPage);
+          }}
           onKeyPress={(event) => {
             if (event.key === "Enter") console.log("Enter Pressed");
           }}

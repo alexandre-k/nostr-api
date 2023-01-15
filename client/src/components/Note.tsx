@@ -17,23 +17,31 @@ type NoteT = {
 interface NoteProps {
   note: NoteT;
   index: number;
-  keyword: string;
+  keywords: string[];
 }
 
-const Note = ({ note, index, keyword }: NoteProps) => (
-  <Grid spacing={2}>
-    {" "}
-    <Card>
-      <CardContent>
-        <Typography sx={{ fontSize: 12 }} color="text.secondary">
-          {note.author}
-        </Typography>
-        <Typography variant="body2">
-          <div>{ReactHtmlParser(note.content.replaceAll(keyword, `<code class="highlight">${keyword}</code>`))}</div>
-        </Typography>
-      </CardContent>
-    </Card>
-  </Grid>
-);
+const Note = ({ note, index, keywords }: NoteProps) => {
+    var noteContent = note.content;
+    for (let idx in keywords) {
+        const word = keywords[idx];
+        noteContent = noteContent.replaceAll(word, `<code class="highlight">${word}</code>`)
+    }
+
+    return (
+        <Grid spacing={2}>
+            {" "}
+            <Card>
+            <CardContent>
+                <Typography sx={{ fontSize: 12 }} color="text.secondary">
+                {note.author}
+                </Typography>
+                <Typography variant="body2">
+                <div>{ReactHtmlParser(noteContent)}</div>
+                </Typography>
+            </CardContent>
+            </Card>
+        </Grid>
+        );
+}
 
 export default Note;
